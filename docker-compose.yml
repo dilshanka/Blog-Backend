@@ -5,8 +5,8 @@ services:
     image: mysql:8.0
     container_name: blog_mysql
     environment:
-      MYSQL_ROOT_PASSWORD: 517672
-      MYSQL_DATABASE: blog_platform
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
     ports:
       - "3306:3306"
     volumes:
@@ -18,12 +18,10 @@ services:
   backend:
     build: .
     container_name: blog_backend
+    env_file:
+      - .env
     environment:
-      DB_HOST: mysql
-      DB_USER: root
-      DB_PASSWORD: 517672
-      DB_NAME: blog_platform
-      PORT: 5000
+      DB_HOST: mysql 
     ports:
       - "5000:5000"
     depends_on:
