@@ -13,20 +13,23 @@ async function initializeDatabase() {
     const schema = fs.readFileSync(schemaPath, "utf8");
     const rawStatements = schema
       .split(";")
-      .map(s => s.trim())
-      .filter(s => s.length > 0);
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
 
-    // Run statements sequentially to preserve order (CREATE TABLE with FKs)
     for (const statement of rawStatements) {
       try {
-        // Skip USE statements to avoid switching DB; connection already uses desired DB
         if (/^USE\s+/i.test(statement)) continue;
 
-        await db.promise().query(statement);
+        await db.query(statement);
       } catch (err) {
-        // Ignore errors for objects that already exist
         const msg = String(err.message || "");
-        if (msg.includes("already exists") || msg.includes("Duplicate") || msg.includes("ER_TABLE_EXISTS_ERROR")) {
+        const code = err.code || "";
+        if (
+          msg.includes("already exists") ||
+          msg.includes("Duplicate") ||
+          code === "ER_DB_CREATE_EXISTS" ||
+          code === "ER_TABLE_EXISTS_ERROR"
+        ) {
           continue;
         }
         console.error("Error executing schema statement:", err);
